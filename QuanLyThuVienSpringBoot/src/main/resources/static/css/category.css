@@ -1,0 +1,70 @@
+/* ==== CHỈ ÁP DỤNG CHO CÁC TRANG DANH MỤC: .admin-categories ==== */
+.admin-categories{
+  /* màu thương hiệu đồng bộ navbar */
+  --brand:     #0b3761;
+  --brand-700: #0a2f52;
+  --brand-800: #06233d;
+
+  /* đồng bộ bootstrap primary trong phạm vi trang */
+  --bs-primary: var(--brand);
+}
+
+/* Card + layout */
+.admin-categories .card{
+  border-radius:16px;
+  box-shadow:0 6px 16px rgba(0,0,0,.08);
+}
+.admin-categories .card.h-100{ width:100%; display:flex; flex-direction:column; }
+.admin-categories .card-header{
+  font-weight:700; letter-spacing:.02em;
+  background: var(--brand); color:#fff;
+}
+
+/* Form & nút thống nhất bo góc/màu */
+.admin-categories .form-control,
+.admin-categories .form-select,
+.admin-categories .btn{ border-radius:12px; }
+
+.admin-categories .form-control:focus,
+.admin-categories .form-select:focus{
+  border-color: var(--brand);
+  box-shadow: 0 0 0 .25rem rgb(11 55 97 / 15%);
+}
+
+.admin-categories .btn-primary,
+.admin-categories .btn-success{
+  --bs-btn-bg:            var(--brand);
+  --bs-btn-border-color:  var(--brand);
+  --bs-btn-hover-bg:      var(--brand-700);
+  --bs-btn-hover-border-color: var(--brand-700);
+  --bs-btn-active-bg:     var(--brand-800);
+  --bs-btn-active-border-color: var(--brand-800);
+  color:#fff;
+}
+.admin-categories .btn-outline-primary,
+.admin-categories .btn-outline-secondary{
+  color: var(--brand);
+  border-color: var(--brand);
+}
+.admin-categories .btn-outline-primary:hover,
+.admin-categories .btn-outline-secondary:hover{
+  background: var(--brand);
+  border-color: var(--brand);
+  color:#fff;
+}
+
+/* Bảng */
+.admin-categories table thead th{
+  background:#f2f7ff;
+}
+.admin-categories table td, 
+.admin-categories table th{
+  vertical-align: middle;
+}
+
+/* Badge nhỏ xinh cho tên danh mục (nếu muốn dùng) */
+.admin-categories .badge-cat{
+  background:#eaf2fb;
+  color: var(--brand);
+  border: 1px solid #d4e4f7;
+}

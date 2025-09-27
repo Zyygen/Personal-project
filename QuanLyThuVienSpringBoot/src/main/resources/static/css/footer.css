@@ -1,0 +1,29 @@
+/* Footer */
+.site-footer{ background:#0b3761; color:#e8f2ff; }
+.site-footer a{ color:#cfe4ff; text-decoration:none; }
+.site-footer a:hover{ color:#fff; text-decoration:underline; }
+
+/* Back to top button */
+.btn-scroll-top{
+  position:fixed; right:18px; bottom:22px; z-index:1050;
+  width:52px; height:52px; border:0; border-radius:50%;
+  background:#32d154; box-shadow:0 8px 18px rgba(0,0,0,.25);
+  display:none; align-items:center; justify-content:center;
+}
+.btn-scroll-top:hover{ filter:brightness(.95); }
+.btn-scroll-top::before{
+  content:""; display:block;
+  width:0; height:0;
+  border-left:9px solid transparent;
+  border-right:9px solid transparent;
+  border-bottom:15px solid #ffffff;
+  transform:translateY(-2px);
+}
+html, body { height: 100%; }
+body { min-height: 100vh; display: flex; flex-direction: column; }
+
+/* phần nội dung chính sẽ giãn chiếm khoảng trống */
+main { flex: 1 0 auto; }
+
+/* footer luôn ở đáy nhưng không đè nội dung */
+.site-footer { margin-top: auto; flex-shrink: 0; }

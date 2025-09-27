@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Trả sách</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+  <link rel="stylesheet" th:href="@{/css/header.css}">
+  <link rel="stylesheet" th:href="@{/css/footer.css}">
+  <style>
+    :root{
+      /* màu thương hiệu – lấy từ CSS toàn site nếu có */
+      --brand-navy: var(--eaut-navy, #0b3761);
+      --brand-accent: var(--eaut-accent, #1a73e8);
+      --thead-bg: #e9f2ff; /* xanh nhạt đồng bộ cho thead */
+      --thead-fg: #0b3761;
+    }
+
+    body{ background:#f8f9fa }
+    .card{ border-radius:16px; box-shadow:0 6px 15px rgba(0,0,0,.08) }
+    .btn-pill{ border-radius:999px; font-weight:600 }
+    .token{ font-family:ui-monospace,Menlo,Consolas,monospace; background:#0d1b2a; color:#e6f1ff; border-radius:8px; padding:.25rem .5rem }
+
+    /* Header của card: đồng bộ màu */
+    .card-header.theme{
+      background:var(--brand-navy) !important;
+      color:#fff !important;
+      border-bottom:0;
+    }
+    .card-header.theme i{ opacity:.9 }
+
+    /* Thead của bảng: đồng bộ màu cho cả 2 bảng */
+    .thead-theme th{
+      background:var(--thead-bg) !important;
+      color:var(--thead-fg) !important;
+      border-color:#d6e6ff !important;
+      white-space:nowrap;
+      font-weight:700;
+    }
+
+    /* căn lề cột số */
+    .col-num{ text-align:right; }
+    .col-days{ text-align:center; }
+
+    /* tinh chỉnh khoảng cách dòng */
+    .table td, .table th{ vertical-align:middle; }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <div th:replace="fragments/header :: siteHeader"></div>
+
+  <!-- Main -->
+  <div class="container py-4">
+
+    <div th:if="${locked}" class="alert alert-danger">
+      <strong>Tài khoản đang bị khóa do có sách quá hạn.</strong>
+      Bạn cần <b>thanh toán phí phạt</b> của bản ghi quá hạn trước khi tạo mã trả (QR).
+    </div>
+
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <!-- ================== SÁCH ĐANG MƯỢN ================== -->
+    <div class="card mb-4">
+      <div class="card-header theme">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-journal-arrow-down"></i>
+          <span class="fw-bold">Sách đang mượn</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover align-middle">
+            <thead class="thead-theme">
+            <tr>
+              <th>Sách</th>
+              <th>Ngày mượn</th>
+              <th>Hạn trả</th>
+              <th class="col-num">Số lượng</th>
+              <th class="col-days">Quá hạn (ngày)</th>
+              <th class="col-num">Phí phạt</th>
+              <th class="col-num">Đã thanh toán</th>
+              <th class="col-num">Còn thiếu</th>
+              <th class="col-num">Thao tác</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${borrowedBooks == null or #lists.isEmpty(borrowedBooks)}">
+              <td colspan="9" class="text-center text-muted">Bạn không có sách nào đang mượn.</td>
+            </tr>
+
+            <tr th:each="b : ${borrowedBooks}"
+                th:with="
+                  now=${T(java.time.LocalDateTime).now()},
+                  rawLate=${b.dueDate != null ? T(java.time.Duration).between(b.dueDate, now).toDays() : 0},
+                  lateDays=${(rawLate - freeDays) > 0 ? (rawLate - freeDays) : 0},
+                  qty=${b.amount != null ? b.amount : 1},
+                  fineNow=${T(java.math.BigDecimal).valueOf(lateDays * finePerDay * qty)},
+                  ZERO=${T(java.math.BigDecimal).ZERO},
+                  paid=${b.finePaidTotal != null ? b.finePaidTotal : ZERO},
+                  outstanding=${fineNow.subtract(paid)}
+                ">
+              <td>
+                <div class="fw-semibold" th:text="${b.book != null ? b.book.title : '—'}">Tên sách</div>
+                <div class="text-muted small" th:text="${b.book != null ? b.book.author : ''}">Tác giả</div>
+                <span th:if="${rawLate > 0}" class="badge bg-danger ms-1">Quá hạn</span>
+              </td>
+              <td th:text="${#temporals.format(b.borrowDate,'dd/MM/yyyy HH:mm')}">--</td>
+              <td th:text="${#temporals.format(b.dueDate,'dd/MM/yyyy HH:mm')}">--</td>
+              <td class="col-num" th:text="${qty}">1</td>
+              <td class="col-days" th:text="${lateDays}">0</td>
+              <td class="col-num"><span th:text="|${#numbers.formatDecimal(fineNow,0,'COMMA',0,'POINT')} đ|">0 đ</span></td>
+              <td class="col-num"><span th:text="|${#numbers.formatDecimal(paid.max(ZERO),0,'COMMA',0,'POINT')} đ|">0 đ</span></td>
+              <td class="col-num">
+                <span th:text="|${#numbers.formatDecimal(outstanding.compareTo(ZERO) > 0 ? outstanding : ZERO,0,'COMMA',0,'POINT')} đ|">0 đ</span>
+              </td>
+              <td class="col-num">
+                <div th:if="${outstanding.compareTo(ZERO) > 0}">
+                  <form th:action="@{/payment/fine/{id}(id=${b.id})}" method="post" class="d-inline">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <input type="hidden" name="amount" th:value="${outstanding.stripTrailingZeros().toPlainString()}"/>
+                    <button class="btn btn-warning btn-sm btn-pill">Thanh toán phí</button>
+                  </form>
+                  <button class="btn btn-outline-secondary btn-sm btn-pill" disabled
+                          title="Cần thanh toán phí phạt trước khi tạo QR trả">
+                    Tạo mã trả (QR)
+                  </button>
+                </div>
+                <div th:unless="${outstanding.compareTo(ZERO) > 0}">
+                  <form th:action="@{/ticket/return/create/{id}(id=${b.id})}" method="post" class="d-inline">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button class="btn btn-outline-primary btn-sm btn-pill">Tạo mã trả (QR)</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================== LỊCH SỬ ĐÃ TRẢ ================== -->
+    <div class="card">
+      <div class="card-header theme">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-clock-history"></i>
+          <span class="fw-bold">Lịch sử đã trả</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover align-middle">
+            <thead class="thead-theme">
+            <tr>
+              <th>Sách</th>
+              <th>Ngày mượn</th>
+              <th>Ngày trả</th>
+              <th class="col-num">Số lượng</th>
+              <th class="col-days">Quá hạn (ngày)</th>
+              <th class="col-num">Phí phạt</th>
+              <th class="col-num">Đã trả</th>
+              <th class="col-num">Còn thiếu</th>
+              <th class="col-days">Trạng thái</th>
+            </tr>
+            </thead>
+			<tbody>
+			  <tr th:if="${returnedBooks == null or #lists.isEmpty(returnedBooks)}">
+			    <td colspan="9" class="text-center text-muted">Chưa có bản ghi trả.</td>
+			  </tr>
+			
+			  <tr th:each="b : ${returnedBooks}"
+			      th:with="
+			        qty=${b.amount != null ? b.amount : 1},
+			        rawLate=${(b.dueDate != null && b.returnDate != null)
+			                    ? T(java.time.Duration).between(b.dueDate, b.returnDate).toDays()
+			                    : 0},
+			        lateDays=${(rawLate - freeDays) > 0 ? (rawLate - freeDays) : 0},
+			        fine=${T(java.math.BigDecimal).valueOf(lateDays * finePerDay * qty)},
+			        ZERO=${T(java.math.BigDecimal).ZERO},
+			        paid=${b.finePaidTotal != null ? b.finePaidTotal : ZERO},
+			        outstanding=${fine.subtract(paid)}
+			      ">
+			    <td>
+			      <div class="fw-semibold" th:text="${b.book != null ? b.book.title : '—'}">Tên sách</div>
+			      <div class="text-muted small" th:text="${b.book != null ? b.book.author : ''}">Tác giả</div>
+			    </td>
+			
+			    <td th:text="${#temporals.format(b.borrowDate,'dd/MM/yyyy HH:mm')}">--</td>
+			    <td th:text="${#temporals.format(b.returnDate,'dd/MM/yyyy HH:mm')}">--</td>
+			
+			    <td class="col-num"  th:text="${qty}">1</td>
+			    <td class="col-days" th:text="${lateDays}">0</td>
+			
+			    <!-- Phí phạt = lateDays * finePerDay * qty (theo thời điểm trả) -->
+			    <td class="col-num">
+			      <span th:text="|${#numbers.formatDecimal(fine,0,'COMMA',0,'POINT')} đ|">0 đ</span>
+			    </td>
+			
+			    <!-- Đã trả -->
+			    <td class="col-num">
+			      <span th:text="|${#numbers.formatDecimal(paid.max(ZERO),0,'COMMA',0,'POINT')} đ|">0 đ</span>
+			    </td>
+			
+			    <!-- Còn thiếu -->
+			    <td class="col-num">
+			      <span th:text="|${#numbers.formatDecimal(outstanding.compareTo(ZERO) > 0 ? outstanding : ZERO,0,'COMMA',0,'POINT')} đ|">0 đ</span>
+			    </td>
+			
+			    <!-- Trạng thái -->
+			    <td class="col-days">
+			      <span class="badge"
+			            th:classappend="${outstanding.compareTo(ZERO) <= 0} ? 'bg-success' :
+			                             (${paid.signum() > 0} ? 'bg-warning text-dark' : 'bg-danger')"
+			            th:text="${outstanding.compareTo(ZERO) <= 0 ? 'PAID' : (paid.signum() > 0 ? 'PENDING' : 'UNPAID')}">
+			        UNPAID
+			      </span>
+			    </td>
+			  </tr>
+			</tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div th:replace="fragments/footer :: siteFooter"></div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script th:src="@{/js/footer.js}"></script>
+</body>
+</html>

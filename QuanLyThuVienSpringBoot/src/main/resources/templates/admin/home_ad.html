@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+  <meta http-equiv="Pragma" content="no-cache"/>
+  <meta http-equiv="Expires" content="0"/>
+  <title>Trang chủ Quản trị</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+  <link rel="stylesheet" th:href="@{/css/header_ad.css}">
+  <link rel="stylesheet" th:href="@{/css/footer.css}">
+
+  <style>
+    /* ===== Sidebar ===== */
+    .panel{ border:1px solid #dee2e6; border-radius:.5rem; background:#fff; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.04); }
+    .panel-header{ background:var(--eaut-navy); color:#fff; text-align:center; font-weight:800; padding:.6rem; letter-spacing:.04em; }
+    .list-plain{ margin:0; padding:0; list-style:none; }
+    .list-plain li a{ display:flex; align-items:center; gap:.5rem; padding:.6rem .9rem; color:#0b3761; text-decoration:none; border-bottom:1px solid #eee; }
+    .list-plain li:last-child a{ border-bottom:none; }
+    .list-plain li a:hover{ background:#f2f7ff; }
+
+    /* ===== Book card ===== */
+    :root{ --title-lh:1.35rem; --title-lines:2; --author-lh:1.2rem; }
+    .card{ border-radius:16px; overflow:hidden; background:#fff; box-shadow:0 6px 16px rgba(0,0,0,.08); transition:transform .2s, box-shadow .2s; display:flex; flex-direction:column; height:100%; }
+    .card:hover{ transform:translateY(-4px); box-shadow:0 12px 24px rgba(0,0,0,.12); }
+    .book-img{ width:100%; height:220px; object-fit:cover; transition:transform .3s; }
+    .card:hover .book-img{ transform:scale(1.03); }
+    .card-body{ display:flex; flex-direction:column; text-align:center; padding:14px 16px; }
+    .card-title{ font-weight:700; color:#1f2937; }
+    .book-title{ line-height:var(--title-lh); min-height:calc(var(--title-lh) * var(--title-lines)); margin-bottom:.25rem; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:var(--title-lines); overflow:hidden; }
+    .book-author{ color:#6c757d; line-height:var(--author-lh); min-height:var(--author-lh); margin-bottom:.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .card-actions{ margin-top:auto; display:flex; gap:.5rem; justify-content:center; align-items:center; border-top:1px solid #eef; padding-top:.75rem; }
+
+    /* ===== Pagination ===== */
+    .pagination .page-link{ border-radius:50%; width:40px; height:40px; display:flex; justify-content:center; align-items:center; font-weight:600; }
+    .pagination .active .page-link{ background:var(--eaut-accent); color:#fff; border-color:var(--eaut-accent); }
+  </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+  <!-- Navbar -->
+  <div th:replace="fragments/header_ad :: adminHeader"></div>
+
+<main class="flex-grow-1">
+  <div class="container my-4 ps-lg-0">
+    <div class="row g-4">
+
+      <!-- ===== Cột trái: Danh mục + Tra cứu ===== -->
+      <aside class="col-12 col-lg-4">
+        <div class="panel mb-4">
+          <div class="panel-header">Danh mục</div>
+          <ul class="list-plain">
+            <!-- Xem tất cả (đúng về admin) -->
+            <li>
+              <a th:href="@{/admin/home_ad}">
+                <i class="bi bi-collection me-1 text-success"></i>
+                <span>Tất cả</span>
+              </a>
+            </li>
+            <!-- Các danh mục -->
+            <li th:each="cat : ${categories}">
+              <a th:href="@{/admin/home_ad(categoryId=${cat.id})}">
+                <i class="bi bi-book me-1 text-primary"></i>
+                <span th:text="${cat.name}">Danh mục</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">Tra cứu sách</div>
+          <div class="p-3 pt-0">
+            <label for="q" class="form-label mb-1 fw-semibold">Nhập tên sách</label>
+            <form th:action="@{/search_ad}" method="get" class="input-group">
+              <input type="text" id="q" name="q" class="form-control" placeholder="Nhập tên sách cần tìm..." th:value="${q}">
+              <!-- giữ size = 6 khi chuyển trang -->
+              <input type="hidden" name="size" th:value="${pageSize != null ? pageSize : 6}">
+              <button class="btn btn-primary"><i class="bi bi-search"></i></button>
+            </form>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ===== Cột phải: Lưới sách ===== -->
+      <section class="col-12 col-lg-8">
+
+        <!-- Thông báo tìm kiếm không có kết quả -->
+        <div class="col-12" th:if="${notFound == true}">
+          <div class="alert alert-danger text-center">
+            Không tìm thấy sách phù hợp với từ khóa "<span th:text="${q}">từ khóa</span>".
+          </div>
+        </div>
+
+        <div class="row g-4">
+          <!-- Lưới chính dùng dữ liệu phân trang (an toàn null) -->
+          <div class="col-12 col-md-6 col-lg-4"
+               th:if="${books != null}"
+               th:each="book : ${books.content}">
+            <div class="card h-100">
+              <img th:src="@{${book.imagePath}}" th:alt="${book.title}" class="book-img">
+              <div class="card-body">
+                <h5 class="card-title book-title" th:text="${book.title}">Tên sách</h5>
+                <p class="card-text book-author">Tác giả: <span th:text="${book.author}">—</span></p>
+                <div class="card-actions">
+                  <a class="btn btn-outline-primary btn-sm" th:href="@{/books/{id}(id=${book.id})}">
+                    <i class="bi bi-eye me-1"></i> Xem chi tiết
+                  </a>
+                  <a class="btn btn-outline-secondary btn-sm" th:href="@{'/admin/books/edit?editId=' + ${book.id}}">
+                    ✏️ Chỉnh sửa
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Danh mục rỗng (không phải search) -->
+          <div class="col-12"
+               th:if="${books != null and books.totalElements == 0 and (notFound != true)}">
+            <div class="alert alert-warning text-center mb-0">Chưa có sách nào!</div>
+          </div>
+        </div>
+
+        <!-- ===== PHÂN TRANG ===== -->
+        <!-- Trường hợp đang ở trang SEARCH (giữ q & size) -->
+        <div th:if="${showPagination == true and q != null and #strings.isEmpty(q) == false}"
+             class="mt-4 d-flex justify-content-center">
+          <ul class="pagination">
+            <li class="page-item" th:classappend="${currentPage == 1} ? ' disabled'">
+              <a class="page-link"
+                 th:href="@{|/search_ad?q=${q}&size=${pageSize != null ? pageSize : 6}&page=${currentPage - 1}|}">Trước</a>
+            </li>
+
+            <li class="page-item" th:each="i : ${#numbers.sequence(1, totalPages)}"
+                th:classappend="${i == currentPage} ? ' active'">
+              <a class="page-link"
+                 th:href="@{|/search_ad?q=${q}&size=${pageSize != null ? pageSize : 6}&page=${i}|}"
+                 th:text="${i}">1</a>
+            </li>
+
+            <li class="page-item" th:classappend="${currentPage == totalPages} ? ' disabled'">
+              <a class="page-link"
+                 th:href="@{|/search_ad?q=${q}&size=${pageSize != null ? pageSize : 6}&page=${currentPage + 1}|}">Sau</a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Trường hợp danh mục hoặc trang tất cả (giữ categoryId nếu có & size) -->
+        <div th:if="${showPagination == true and (q == null or #strings.isEmpty(q))}"
+             class="mt-4 d-flex justify-content-center">
+          <ul class="pagination">
+            <li class="page-item" th:classappend="${currentPage == 1} ? ' disabled'">
+              <a class="page-link"
+                 th:href="@{|/admin/home_ad?page=${currentPage - 1}&size=${pageSize != null ? pageSize : 6}${(categoryId != null and categoryId != 0) ? '&categoryId=' + categoryId : ''}|}">Trước</a>
+            </li>
+
+            <li class="page-item" th:each="i : ${#numbers.sequence(1, totalPages)}"
+                th:classappend="${i == currentPage} ? ' active'">
+              <a class="page-link"
+                 th:href="@{|/admin/home_ad?page=${i}&size=${pageSize != null ? pageSize : 6}${(categoryId != null and categoryId != 0) ? '&categoryId=' + categoryId : ''}|}"
+                 th:text="${i}">1</a>
+            </li>
+
+            <li class="page-item" th:classappend="${currentPage == totalPages} ? ' disabled'">
+              <a class="page-link"
+                 th:href="@{|/admin/home_ad?page=${currentPage + 1}&size=${pageSize != null ? pageSize : 6}${(categoryId != null and categoryId != 0) ? '&categoryId=' + categoryId : ''}|}">Sau</a>
+            </li>
+          </ul>
+        </div>
+
+      </section>
+    </div>
+  </div>
+</main>
+
+  <div th:replace="fragments/footer :: siteFooter"></div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script th:src="@{/js/footer.js}"></script>
+</body>
+</html>

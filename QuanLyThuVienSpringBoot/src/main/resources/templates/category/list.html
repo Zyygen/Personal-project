@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Quản lý Danh mục Sách</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+  <link rel="stylesheet" th:href="@{/css/header_ad.css}">
+  <link rel="stylesheet" th:href="@{/css/footer.css}">
+  <link rel="stylesheet" th:href="@{/css/category.css}">
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+  <!-- Navbar -->
+  <div th:replace="fragments/header_ad :: adminHeader"></div>
+
+<main class="flex-grow-1 admin-categories">
+  <div class="container my-4">
+
+    <div class="card">
+      <div class="card-header">📚 Danh mục Sách</div>
+      <div class="card-body">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="m-0">Danh sách danh mục</h5>
+          <a th:href="@{/admin/categories/add}" class="btn btn-primary">
+            + Thêm Danh mục
+          </a>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th style="width:80px" class="text-center">#</th>
+                <th>Tên danh mục</th>
+                <th style="width:180px" class="text-center">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="cat, iterStat : ${categories}">
+                <td class="text-center" th:text="${iterStat.count}">1</td>
+                <td>
+                  <span class="badge badge-cat" th:text="${cat.name}">Tên danh mục</span>
+                </td>
+                <td class="text-center">
+                  <a th:href="@{'/admin/categories/edit/' + ${cat.id}}" class="btn btn-sm btn-outline-primary me-1">Sửa</a>
+                  <a th:href="@{'/admin/categories/delete/' + ${cat.id}}"
+                     class="btn btn-sm btn-outline-danger"
+                     onclick="return confirm('Bạn có chắc chắn muốn xóa?');">Xóa</a>
+                </td>
+              </tr>
+              <tr th:if="${#lists.isEmpty(categories)}">
+                <td colspan="3" class="text-center text-danger">Chưa có danh mục nào!</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mt-3">
+          <a th:href="@{/home}" class="btn btn-outline-secondary">⬅ Quay lại trang chủ</a>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</main>
+
+  <div th:replace="fragments/footer :: siteFooter"></div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script th:src="@{/js/footer.js}"></script>
+</body>
+</html>

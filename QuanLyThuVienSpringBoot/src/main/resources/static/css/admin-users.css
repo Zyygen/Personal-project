@@ -1,0 +1,80 @@
+/* ==== Phạm vi trang quản lý người dùng ==== */
+.admin-users {
+  --brand:     #0b3761;   /* cùng màu với navbar */
+  --brand-700: #0a2f52;
+  --brand-800: #06233d;
+
+  /* đồng bộ "primary" trong phạm vi trang */
+  --bs-primary: var(--brand);
+}
+
+/* Khối container */
+.admin-users .page-title {
+  color: var(--brand);
+  font-weight: 800;
+  letter-spacing: .02em;
+}
+
+/* Bảng + header sticky */
+.admin-users .table-wrap {
+  border: 1px solid #e9eef5;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 16px rgba(0,0,0,.06);
+}
+
+.admin-users table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+}
+
+.admin-users table td,
+.admin-users table th {
+  vertical-align: middle;
+}
+
+/* Ô nhập nhỏ gọn, bo tròn, focus theo brand */
+.admin-users .form-control {
+  border-radius: 12px;
+}
+
+.admin-users .form-control:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 .25rem rgb(11 55 97 / 15%);
+}
+
+/* Nút hành động đồng bộ màu */
+.admin-users .btn-primary {
+  --bs-btn-bg: var(--brand);
+  --bs-btn-border-color: var(--brand);
+  --bs-btn-hover-bg: var(--brand-700);
+  --bs-btn-hover-border-color: var(--brand-700);
+  --bs-btn-active-bg: var(--brand-800);
+  --bs-btn-active-border-color: var(--brand-800);
+  color: #fff;
+  border-radius: 12px;
+}
+
+.admin-users .btn-outline-danger {
+  border-radius: 12px;
+}
+
+/* Hàng bảng hover nổi nhẹ */
+.admin-users .table-hover tbody tr:hover td {
+  background: #f8fbff;
+}
+
+/* Alert bo tròn */
+.admin-users .alert {
+  border-radius: 12px;
+}
+
+/* Responsive: co giãn input trên mobile */
+@media (max-width: 767.98px) {
+  .admin-users .table td input.form-control {
+    min-width: 160px;
+  }
+}

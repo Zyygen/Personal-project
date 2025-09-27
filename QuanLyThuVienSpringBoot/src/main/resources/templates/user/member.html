@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Thành viên</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+  <link rel="stylesheet" th:href="@{/css/header.css}">
+  <link rel="stylesheet" th:href="@{/css/footer.css}">
+  <style>
+    body{background:#f8f9fa;}
+    .card{border-radius:16px; box-shadow:0 6px 16px rgba(0,0,0,.08);}
+    .page-title{font-weight:800; letter-spacing:.02em; color:#0b3761}
+    .chip{display:inline-flex;align-items:center;gap:.4rem;padding:.25rem .6rem;border-radius:999px;font-weight:600;font-size:.85rem}
+    .chip-basic{background:#eef3f8;color:#0b3761}
+    .chip-member{background:#e7f7ef;color:#0f6b3a}
+    .price{font-size:2rem; font-weight:800}
+    .strike{opacity:.6; text-decoration: line-through}
+  </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<!-- Navbar -->
+	<div th:replace="fragments/header :: siteHeader"></div>
+<main class="flex-grow-1">
+<div class="container py-4">
+  <div class="row g-4">
+    <!-- Cột trái: Trạng thái hiện tại + chính sách -->
+    <div class="col-12 col-lg-7">
+      <div class="card">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <h2 class="page-title mb-0">Trạng thái tài khoản</h2>
+            <!-- chip trạng thái -->
+            <span class="chip chip-member" th:if="${isMember}"><i class="bi bi-patch-check-fill"></i> Thành viên</span>
+            <span class="chip chip-basic"  th:if="${!isMember}"><i class="bi bi-person-circle"></i> Tài khoản thường</span>
+          </div>
+
+          <div class="text-muted mb-3">
+            <span th:if="${isMember}">
+              Hiệu lực tới:
+              <b th:text="${memberUntil != null ? #temporals.format(memberUntil, 'dd/MM/yyyy HH:mm') : '—'}">—</b>.
+              Quyền lợi áp dụng ngay trong thời gian hiệu lực.
+            </span>
+            <span th:if="${!isMember}">
+              Bạn đang sử dụng tài khoản thường. Nâng cấp để mượn nhiều hơn và thời hạn lâu hơn.
+            </span>
+          </div>
+
+          <hr/>
+
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <div class="border rounded p-3 h-100">
+                <div class="fw-bold mb-2"><i class="bi bi-info-circle me-1"></i>Chính sách hiện tại</div>
+                <ul class="mb-0 small">
+                  <!-- Nếu bạn có thông số cho tài khoản thường, truyền qua model; có mặc định an toàn -->
+                  <li>Loại: <b>Tài khoản thường</b></li>
+                  <li>Mượn tối đa:
+                    <b th:text="${basicMaxBooks != null ? basicMaxBooks : 2}">2</b> cuốn/lượt
+                  </li>
+                  <li>Thời hạn mượn:
+                    <b th:text="${basicDays != null ? basicDays : 7}">7</b> ngày/cuốn
+                  </li>
+                  <li>Phí phạt trả muộn thanh toán qua VNPAY (đã tích hợp).</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <div class="border rounded p-3 h-100 bg-light">
+                <div class="fw-bold mb-2"><i class="bi bi-stars me-1"></i>Quyền lợi thành viên</div>
+                <ul class="mb-0 small">
+                  <li>Mượn tối đa <b>5</b> cuốn/lượt</li>
+                  <li>Thời hạn mượn <b>14</b> ngày/cuốn</li>
+                  <li>Kích hoạt ngay khi thanh toán thành công</li>
+                  <li>Quản lý gói trong trang hồ sơ</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cột phải: Offer nâng cấp / gia hạn -->
+    <div class="col-12 col-lg-5" id="offer">
+      <div class="card">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <h4 class="mb-0 fw-bold"
+			    th:text="${isMember} ? 'Gia hạn thành viên' : 'Nâng cấp thành viên'">
+			  Nâng cấp thành viên
+			</h4>
+          </div>
+          <div class="text-muted mb-3">Giá theo tháng, tính thời gian <b>thực</b> từ lúc thanh toán.</div>
+
+          <div class="d-flex align-items-end gap-2 mb-3">
+            <div class="price">50.000₫</div>
+            <div class="mb-2">/ tháng</div>
+          </div>
+
+          <ul class="small mb-3">
+            <li>Hiệu lực dự kiến:
+              <b th:text="${previewExpiry != null ? #temporals.format(previewExpiry,'dd/MM/yyyy HH:mm') : 'sau 30 ngày kể từ thời điểm thanh toán'}">sau 30 ngày…</b>
+            </li>
+            <li>Thanh toán qua <b>VNPAY</b>.</li>
+          </ul>
+
+          <!-- Thông báo -->
+          <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+          <div th:if="${error}"   class="alert alert-danger"  th:text="${error}"></div>
+
+          <!-- Form thanh toán VNPAY (POST) -->
+          <form th:if="${!isMember}" th:action="@{/payment/membership}" method="post" class="mt-2">
+			  <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+			  <input type="hidden" name="plan"   value="MONTHLY"/>
+			  <input type="hidden" name="amount" value="50000"/>
+			
+			  <div class="form-check mb-3">
+			    <input class="form-check-input" type="checkbox" id="agree" required>
+			    <label class="form-check-label small" for="agree">
+			      Tôi đồng ý với điều khoản sử dụng và chính sách mượn sách.
+			    </label>
+			  </div>
+			
+			  <button type="submit" class="btn btn-primary w-100">
+			    <i class="bi bi-qr-code-scan me-1"></i>
+			    Thanh toán VNPAY & kích hoạt ngay
+			  </button>
+			
+			  <div class="text-center small text-muted mt-2">
+			    Khi thanh toán thành công, gói sẽ được kích hoạt ngay lập tức.
+			  </div>
+			</form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="alert alert-success mt-2" th:if="${isMember}">
+	  Bạn đang là thành viên đến:
+	  <b th:text="${memberUntil != null ? #temporals.format(memberUntil,'dd/MM/yyyy HH:mm') : '—'}">—</b>.
+	</div>
+</div>
+</main>
+<div th:replace="fragments/footer :: siteFooter"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/footer.js}"></script>
+</body>
+</html>

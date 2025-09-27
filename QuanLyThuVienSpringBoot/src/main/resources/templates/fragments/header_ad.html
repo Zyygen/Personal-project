@@ -1,0 +1,71 @@
+<div th:fragment="adminHeader"
+     xmlns:th="http://www.thymeleaf.org"
+     xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+  <!-- Banner -->
+  <div class="top-banner">
+    <img src="https://thuvieneaut.edu.vn/App_themes/eaut/images/bannerEaut.png" alt="Banner Thư viện EAUT">
+  </div>
+
+  <!-- Navbar (navbar-dark để hiện toggler-icon trắng) -->
+  <nav class="navbar navbar-expand-lg eaut-navbar navbar-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand d-flex align-items-center" th:href="@{/admin/home_ad}">
+        <i class="bi bi-house-door-fill me-2"></i> Trang chủ
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+              aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div id="mainNav" class="collapse navbar-collapse">
+        <!-- MIDDLE: menu quản trị -->
+        <ul class="navbar-nav middle flex-lg-row">
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Quản lý sách</a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" th:href="@{/admin/books/add}">Thêm sách</a></li>
+              <li><a class="dropdown-item" th:href="@{/admin/books/edit}">Cập nhật sách</a></li>
+              <li><a class="dropdown-item" th:href="@{/admin/books/delete}">Xóa sách</a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item d-none d-lg-flex align-items-center"><span class="menu-sep"></span></li>
+          <li class="nav-item"><a class="nav-link" th:href="@{/admin/confirm}">Xác nhận mượn/trả</a></li>
+
+          <li class="nav-item d-none d-lg-flex align-items-center"><span class="menu-sep"></span></li>
+          <li class="nav-item"><a class="nav-link" th:href="@{/admin/categories}">Danh sách danh mục</a></li>
+
+          <li class="nav-item d-none d-lg-flex align-items-center"><span class="menu-sep"></span></li>
+          <li class="nav-item"><a class="nav-link" th:href="@{/admin/user}">Quản lý người dùng</a></li>
+
+          <li class="nav-item d-none d-lg-flex align-items-center"><span class="menu-sep"></span></li>
+          <li class="nav-item"><a class="nav-link" th:href="@{/admin/statistics/status}">Tình trạng sách</a></li>
+
+          <li class="nav-item d-none d-lg-flex align-items-center"><span class="menu-sep"></span></li>
+          <li class="nav-item"><a class="nav-link" th:href="@{/admin/statistics/report}">Thống kê</a></li>
+        </ul>
+
+        <!-- RIGHT -->
+        <ul class="navbar-nav ms-auto align-items-lg-center">
+          <li class="nav-item" sec:authorize="isAuthenticated()">
+            <span class="nav-link disabled text-white">
+              Xin chào, <span sec:authentication="name"></span>
+            </span>
+          </li>
+          <li class="nav-item" sec:authorize="isAuthenticated()">
+            <a class="nav-link text-warning" th:href="@{/logout}">
+              <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
+            </a>
+          </li>
+          <li class="nav-item" sec:authorize="isAnonymous()">
+            <a class="nav-link" th:href="@{/signin}">
+              <i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+</div>

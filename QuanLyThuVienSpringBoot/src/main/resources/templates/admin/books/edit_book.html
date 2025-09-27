@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chỉnh sửa sách (Admin)</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+  <link rel="stylesheet" th:href="@{/css/header_ad.css}">
+  <!-- thêm dòng dưới để đồng bộ màu với navbar (Cách A) -->
+  <link rel="stylesheet" th:href="@{/css/admin-books.css?v=1}">
+  <link rel="stylesheet" th:href="@{/css/footer.css}">
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+  <!-- Navbar -->
+  <div th:replace="fragments/header_ad :: adminHeader"></div>
+
+  <!-- thêm class admin-books để scope CSS -->
+  <main class="flex-grow-1 admin-books">
+    <div class="container my-4">
+      <div class="row g-4">
+
+        <!-- Form cập nhật -->
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">✏️ Cập nhật thông tin sách</div>
+            <div class="card-body">
+
+              <div th:if="${book == null}" class="alert alert-info mb-0">
+                Hãy chọn một cuốn sách ở danh sách bên dưới để chỉnh sửa.
+              </div>
+
+              <form th:if="${book != null}"
+                    th:action="@{/admin/books/update}"
+                    th:object="${book}"
+                    method="post"
+                    enctype="multipart/form-data"
+                    novalidate>
+                <input type="hidden" th:field="*{id}" />
+
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label for="title" class="form-label">Tên sách</label>
+                    <input type="text" id="title" th:field="*{title}" class="form-control" required>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="author" class="form-label">Tác giả</label>
+                    <input type="text" id="author" th:field="*{author}" class="form-control" required>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="category" class="form-label">Danh mục sách</label>
+                    <select id="category" th:field="*{category.id}" class="form-select" required>
+                      <option th:each="cat : ${categories}"
+                              th:value="${cat.id}"
+                              th:text="${cat.name}"
+                              th:selected="${book.category != null and cat.id == book.category.id}">
+                      </option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="quantity" class="form-label">Số lượng</label>
+                    <input type="number" id="quantity" th:field="*{quantity}" class="form-control" min="0" required>
+                  </div>
+
+                  <div class="col-12">
+                    <label for="description" class="form-label">Mô tả</label>
+                    <textarea id="description" th:field="*{description}" class="form-control" rows="4"
+                              placeholder="Mô tả ngắn về nội dung sách..."></textarea>
+                    <div class="text-danger" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
+                  </div>
+
+                  <div class="col-md-6" th:if="${book.imagePath != null}">
+                    <label class="form-label">Ảnh bìa hiện tại</label><br>
+                    <img th:src="@{${book.imagePath}}" alt="Ảnh bìa" class="img-thumbnail" style="max-height:160px;">
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="image" class="form-label">Ảnh bìa (nếu cập nhật)</label>
+                    <input type="file" id="image" name="image" class="form-control" accept="image/*">
+                  </div>
+
+                  <div class="col-12">
+                    <button type="submit" class="btn btn-success">💾 Lưu thay đổi</button>
+                    <a th:href="@{/admin/books/edit}" class="btn btn-outline-primary ms-2">⬅️ Quay lại</a>
+                  </div>
+                </div>
+
+                <div th:if="${error}" class="alert alert-danger mt-3" th:text="${error}"></div>
+                <div th:if="${message}" class="alert alert-success mt-3" th:text="${message}"></div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Danh sách 6 cuốn/trang -->
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">📚 Danh sách sách hiện có</div>
+            <div class="card-body p-0">
+              <div th:if="${#lists.isEmpty(books)}" class="p-3 text-center text-muted">Không có sách nào</div>
+
+              <div th:if="${!#lists.isEmpty(books)}" class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                  <thead>
+                    <tr>
+                      <th style="width:70px">STT</th>
+                      <th>Tên sách</th>
+                      <th>Tác giả</th>
+                      <th style="width:120px">Số lượng</th>
+                      <th style="width:120px">Trạng thái</th>
+                      <th style="width:140px">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr th:each="b, iterStat : ${books}">
+                      <td th:text="${page * 6 + iterStat.index + 1}">1</td>
+                      <td th:text="${b.title}">Tên</td>
+                      <td th:text="${b.author}">Tác giả</td>
+                      <td><span class="badge bg-light text-dark" th:text="${b.quantity}">0</span></td>
+                      <td>
+                        <span class="badge"
+                              th:classappend="${b.available} ? ' badge-yes' : ' badge-no'"
+                              th:text="${b.available ? '✔ Có sẵn' : '❌ Hết'}"></span>
+                      </td>
+                      <td>
+                        <a th:href="@{'/admin/books/edit?editId=' + ${b.id}}"
+                           class="btn btn-sm btn-outline-primary">✏️ Sửa</a>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Phân trang -->
+            <nav th:if="${totalPages > 1}" aria-label="Pagination">
+              <ul class="pagination justify-content-center my-3">
+                <li class="page-item" th:classappend="${page == 0} ? ' disabled'">
+                  <a class="page-link" th:href="@{'/admin/books/edit'(page=${page - 1})}" aria-label="Previous">&laquo;</a>
+                </li>
+
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                    th:classappend="${page == i} ? ' active'">
+                  <a class="page-link" th:href="@{'/admin/books/edit'(page=${i})}" th:text="${i + 1}">1</a>
+                </li>
+
+                <li class="page-item" th:classappend="${page == totalPages - 1} ? ' disabled'">
+                  <a class="page-link" th:href="@{'/admin/books/edit'(page=${page + 1})}" aria-label="Next">&raquo;</a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <div th:replace="fragments/footer :: siteFooter"></div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script th:src="@{/js/footer.js}"></script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Thống kê & Báo cáo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+    <link rel="stylesheet" th:href="@{/css/header_ad.css}">
+    <link rel="stylesheet" th:href="@{/css/footer.css}">
+    <link rel="stylesheet" th:href="@{/css/statistics.css}">
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+  <!-- Navbar -->
+  <div th:replace="fragments/header_ad :: adminHeader"></div>
+
+<main class="flex-grow-1 admin-stats">
+<div class="container">
+
+    <!-- ===== Thống kê mượn ===== -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">📊 Thống kê mượn sách</div>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+                Sách mượn hôm nay:
+                <strong th:text="${todayBorrowCount}">0</strong>
+            </li>
+            <li class="list-group-item">
+                Sách mượn tuần này:
+                <strong th:text="${weekBorrowCount}">0</strong>
+            </li>
+            <li class="list-group-item">
+                Sách mượn tháng này:
+                <strong th:text="${monthBorrowCount}">0</strong>
+            </li>
+        </ul>
+    </div>
+
+    <!-- ===== Danh sách quá hạn ===== -->
+    <div class="card mb-4">
+        <div class="card-header bg-danger text-white">📚 Danh sách trễ hạn</div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-bordered mb-0">
+              <thead class="table-light">
+				  <tr>
+				    <th>Tên sách</th>
+				    <th>Số Lượng</th>
+				    <th>Người dùng</th>
+				    <th>Ngày mượn</th>
+				    <th>Hạn trả</th>
+				    <th>Số ngày trễ</th>
+				    <th>Phạt (VNĐ)</th>
+				    <!-- CỘT MỚI -->
+				    <th>Còn thiếu (VNĐ)</th>
+				    <th>Tình trạng</th>
+				  </tr>
+				</thead>
+				<tbody>
+				  <tr th:each="b : ${overdueList}"
+				      th:with="
+				        days=${b.calcOverdueDays24h()},
+				        fine=${b.calcFineAmount(5000)},
+				        paid=${b.finePaidTotal != null ? b.finePaidTotal : T(java.math.BigDecimal).ZERO},
+				        remaining=${fine.subtract(paid).compareTo(T(java.math.BigDecimal).ZERO) > 0 ? fine.subtract(paid) : T(java.math.BigDecimal).ZERO}
+				      ">
+				    <td th:text="${b.book.title}">Tiêu đề</td>
+				    <td th:text="${entry.amount != null ? entry.amount : 1}">1</td>
+				    <td th:text="${b.user.username}">user</td>
+				    <td th:text="${#temporals.format(b.borrowDate, 'dd/MM/yyyy HH:mm')}">—</td>
+				    <td th:text="${#temporals.format(b.dueDate, 'dd/MM/yyyy HH:mm')}">—</td>
+				
+				    <!-- Số ngày trễ: đủ 24h mới tính 1 ngày -->
+				    <td th:text="${days}">0</td>
+				
+				    <!-- Phạt (VNĐ) = days × amount × 5000 -->
+				    <td th:text="${#numbers.formatDecimal(fine,0,'COMMA',0,'POINT')}">0</td>
+				
+				    <!-- Cột mới: Còn thiếu (VNĐ) = max(fine - paid, 0) -->
+				    <td th:text="${#numbers.formatDecimal(remaining,0,'COMMA',0,'POINT')}">0</td>
+				
+				    <td>
+				      <span th:class="${b.returnDate == null} ? 'badge bg-warning text-dark' : 'badge bg-success'"
+				            th:text="${b.returnDate == null ? 'Chưa trả' : 'Đã trả'}">Chưa trả</span>
+				    </td>
+				  </tr>
+				
+				  <tr th:if="${#lists.isEmpty(overdueList)}">
+				    <td colspan="8" class="text-center text-muted fw-bold">
+				      Hiện tại không có sinh viên trễ hạn.
+				    </td>
+				  </tr>
+				</tbody>
+            </table>
+          </div>
+        </div>
+    </div>
+
+    <!-- ===== Sinh viên mượn nhiều ===== -->
+    <div class="card">
+      <div class="card-header bg-success text-white">🏅 Sinh viên mượn nhiều sách nhất</div>
+      <div class="card-body">
+        <p class="fs-5" th:if="${topBorrower != null}">
+		  <strong th:text="${topBorrower.username}">user@example.com</strong>
+		  - Tổng số sách đã mượn:
+		  <strong th:text="${topBorrower.total}">0</strong>
+		</p>
+		<p class="text-muted" th:if="${topBorrower == null}">
+		  Không có dữ liệu sinh viên mượn nhiều nhất.
+		</p>
+      </div>
+    </div>
+
+    <!-- ===== Danh sách sinh viên đang mượn ===== -->
+    <div class="card mt-4">
+      <div class="card-header bg-info text-white">📋 Danh sách sinh viên đang mượn sách</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-bordered mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Người dùng</th>
+                <th>Tên sách</th>
+                <th>Số lượng</th>
+                <th>Ngày mượn</th>
+                <th>Hạn trả</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="entry : ${borrowersPage != null ? borrowersPage.content : {}}">
+                <td th:text="${entry.user != null ? entry.user.username : '—'}">—</td>
+                <td th:text="${entry.book != null ? entry.book.title    : '—'}">—</td>
+                <td th:text="${entry.amount != null ? entry.amount : 1}">1</td>
+                <td th:text="${entry.borrowDate != null ? #temporals.format(entry.borrowDate,'dd/MM/yyyy HH:mm') : '—'}">—</td>
+                <td th:text="${entry.dueDate    != null ? #temporals.format(entry.dueDate,'dd/MM/yyyy HH:mm')     : '—'}">—</td>
+              </tr>
+
+              <tr th:if="${borrowersPage == null or borrowersPage.totalElements == 0}">
+                <td colspan="5" class="text-center text-muted fw-bold">
+                  Hiện tại không có sinh viên nào đang mượn sách.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Phân trang -->
+      <div class="card-footer" th:if="${borrowersPage != null and borrowersPage.totalElements > borrowersPage.size}">
+        <nav>
+          <ul class="pagination justify-content-center mb-0">
+            <li class="page-item" th:classappend="${borrowersPage.first} ? ' disabled'">
+              <a class="page-link" th:href="@{/admin/statistics/report(page=${borrowersPage.number - 1})}">Trước</a>
+            </li>
+            <li class="page-item"
+                th:each="pageNum : ${#numbers.sequence(0, borrowersPage.totalPages - 1)}"
+                th:classappend="${pageNum == borrowersPage.number} ? ' active'">
+              <a class="page-link" th:href="@{/admin/statistics/report(page=${pageNum})}" th:text="${pageNum + 1}">1</a>
+            </li>
+            <li class="page-item" th:classappend="${borrowersPage.last} ? ' disabled'">
+              <a class="page-link" th:href="@{/admin/statistics/report(page=${borrowersPage.number + 1})}">Tiếp</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+
+</div>
+</main>
+
+  <div th:replace="fragments/footer :: siteFooter"></div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script th:src="@{/js/footer.js}"></script>
+</body>
+</html>

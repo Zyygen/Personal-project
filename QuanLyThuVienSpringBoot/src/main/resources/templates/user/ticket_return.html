@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Phiếu trả</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+  <link rel="stylesheet" th:href="@{/css/header.css}">
+  <link rel="stylesheet" th:href="@{/css/footer.css}">
+  <style>
+    body{background:#f8f9fa;}
+    .card{border-radius:16px; box-shadow:0 6px 15px rgba(0,0,0,.08); transition:.25s;}
+    .card:hover{transform:translateY(-4px); box-shadow:0 12px 28px rgba(0,0,0,.12);}
+    .badge-soft { background:#eef5ff; color:#0d6efd; border:1px solid #d9e9ff; }
+    .token-box{font-family:ui-monospace,Menlo,Consolas,monospace; background:#0b3761; color:#e6f1ff; border-radius:10px; padding:.5rem .75rem;}
+    .btn-pill{border-radius:999px; font-weight:600;}
+    .progress{height:10px; border-radius:999px; background:#e9ecef;}
+    .qr-img{width:280px; height:280px; object-fit:contain; border-radius:12px; border:1px solid #e9ecef; padding:8px; background:#fff;}
+    .hint{font-size:.925rem; color:#6c757d;}
+    .list-steps li + li{margin-top:.25rem;}
+    .countdown{font-variant-numeric:tabular-nums;}
+    .card-footer{border-top:1px solid rgba(0,0,0,.075);}
+  </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+<!-- Navbar -->
+  <div th:replace="fragments/header :: siteHeader"></div>
+ <main class="flex-grow-1">
+<div class="container py-4">
+  <div class="row g-4">
+
+    <!-- Cột trái: QR + thao tác (giống borrow) -->
+    <div class="col-12 col-lg-5">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0">QR trả sách</h4>
+            <span class="badge badge-soft" th:text="${#temporals.format(ticket.requestedAt, 'dd/MM/yyyy HH:mm')}">--/--/---- --:--</span>
+          </div>
+
+          <div class="d-flex flex-column align-items-center text-center">
+            <!-- dùng biến 'qr' (data URI) từ controller -->
+            <img class="qr-img mb-3" th:src="${qr}" alt="QR trả">
+            <div class="hint mb-3">Đưa mã QR này cho thủ thư để quét và xác nhận trả.</div>
+          </div>
+        </div>
+
+        <div class="card-footer bg-white">
+          <div class="d-flex flex-wrap gap-2 justify-content-center">
+            <button class="btn btn-outline-secondary btn-pill" type="button" id="copyBtn">Sao chép mã vé</button>
+            <button class="btn btn-outline-primary btn-pill" type="button" onclick="window.print()">In phiếu</button>
+
+            <form th:if="${ticket.status.name()=='PENDING'}"
+                  th:action="@{'/ticket/return/cancel/' + ${ticket.id}}" method="post" class="m-0" id="cancelForm">
+              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+              <!-- back tuyệt đối: lấy từ model nếu có, mặc định /return -->
+              <input type="hidden" name="back" th:value="${back != null ? back : '/return'}"/>
+              <button id="cancelBtn" class="btn btn-outline-danger btn-pill" type="submit">Hủy vé</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chi tiết (giống bố cục borrow) -->
+    <div class="col-12 col-lg-7">
+      <div class="card h-100">
+        <div class="card-body">
+          <h4 class="mb-3">Chi tiết phiếu</h4>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="text-muted small mb-1">Mã vé</div>
+              <div class="token-box" id="ticketToken" th:text="${ticket.token}">TOKEN</div>
+            </div>
+            <div class="col-md-6">
+              <div class="text-muted small mb-1">Trạng thái</div>
+              <div>
+                <span id="statusBadge" class="badge"
+                      th:classappend="${ticket.status.name()=='PENDING'} ? 'bg-warning text-dark' :
+                                      (${ticket.status.name()=='CONFIRMED'} ? 'bg-success' :
+                                      (${ticket.status.name()=='CANCELLED'} ? 'bg-secondary' :
+                                      (${ticket.status.name()=='EXPIRED'} ? 'bg-danger' : 'bg-light text-dark')))"
+                      th:text="${ticket.status.name()}">PENDING</span>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="text-muted small mb-1">Sách</div>
+              <div class="fw-semibold" th:text="${bookTitle}">Tên sách</div>
+              <div class="text-muted">Tác giả: <span th:text="${bookAuthor}">Tác giả</span></div>
+            </div>
+            <div class="col-md-6">
+              <div class="text-muted small mb-1">Người mượn</div>
+              <div class="fw-semibold" th:text="${viewerFullName}">Họ tên</div>
+              <div class="text-muted">Email: <span th:text="${viewerEmail}">mail@example.com</span></div>
+            </div>
+
+            <div class="col-md-3">
+              <div class="text-muted small mb-1">Số lượng trả</div>
+              <div class="fw-semibold" th:text="${borrowAmount}">1</div>
+            </div>
+            <div class="col-md-3" th:if="${dueDateFmt != null}">
+              <div class="text-muted small mb-1">Hạn trả</div>
+              <div class="fw-semibold" th:text="${dueDateFmt}">--/--/---- --:--</div>
+            </div>
+          </div>
+
+          <hr class="my-4"/>
+
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">Còn lại</span>
+            <strong class="countdown h5 mb-0" id="timeLeft">--:--:--</strong>
+          </div>
+          <div class="progress mb-1">
+            <div id="progressBar" class="progress-bar" role="progressbar" style="width:0%"></div>
+          </div>
+          <div class="hint">Mã sẽ hết hạn vào <span th:text="${#temporals.format(ticket.expiresAt, 'dd/MM/yyyy HH:mm')}">--/--/---- --:--</span></div>
+        </div>
+
+        <!-- Footer: giống borrow -->
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+          <a id="backBtn" href="#" class="btn btn-light btn-pill">← Quay lại</a>
+          <div class="d-flex gap-2">
+            <a th:href="@{/return}" class="btn btn-outline-secondary btn-pill">Trang trả sách</a>
+            <a th:href="@{/home}"   class="btn btn-outline-secondary btn-pill">Trang chủ</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Trả sách thành công (matching style) -->
+<div class="modal fade" id="returnSuccessModal" tabindex="-1" aria-hidden="true" aria-labelledby="returnSuccessLabel">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-bold" id="returnSuccessLabel">
+          <i class="bi bi-check-circle-fill text-success me-2"></i> Trả sách thành công
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
+      <div class="modal-body pt-0">
+        <p class="mb-2">Phiếu trả đã được xác nhận.</p>
+        <div th:if="${bookTitle != null}" class="mb-1">
+          <span class="text-muted">Sách:&nbsp;</span>
+          <strong th:text="${bookTitle}">—</strong>
+        </div>
+        <div th:if="${dueDateFmt != null}">
+          <span class="text-muted">Hạn trả:&nbsp;</span>
+          <strong th:text="${dueDateFmt}">—</strong>
+        </div>
+        <div class="text-muted small mt-2">Mã vé: <span th:text="${ticket.token}">—</span></div>
+      </div>
+      <div class="modal-footer border-0">
+        <button id="returnOkBtn" type="button" class="btn btn-primary px-4">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden fields -->
+<input type="hidden" id="requestedAtIso" th:value="${#temporals.format(ticket.requestedAt, 'yyyy-MM-dd''T''HH:mm:ss')}">
+<input type="hidden" id="expiresAtIso"   th:value="${#temporals.format(ticket.expiresAt,   'yyyy-MM-dd''T''HH:mm:ss')}">
+<input type="hidden" id="initialStatus"  th:value="${ticket.status.name()}">
+<input type="hidden" id="ticketId"       th:value="${ticket.id}">
+</main>
+  <div th:replace="fragments/footer :: siteFooter"></div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script th:src="@{/js/footer.js}"></script>
+<script>
+/* Quay lại: ?back hoặc hidden input trong form; fallback /return (giống borrow) */
+(function(){
+  const btn = document.getElementById('backBtn');
+  if(!btn) return;
+
+  const params = new URLSearchParams(location.search);
+  let back = params.get('back') || (document.querySelector('input[name="back"]')?.value);
+
+  if (!back || back === '#') {
+    const ref = document.referrer || '';
+    if (ref) { try { const u = new URL(ref); if (u.origin === location.origin) back = u.pathname + u.search + u.hash; } catch(_) {} }
+  }
+  if (!back) back = '/return';
+  try {
+    if (/^https?:\/\//i.test(back)) {
+      const u = new URL(back);
+      back = (u.origin === location.origin) ? (u.pathname + u.search + u.hash) : '/return';
+    } else if (!back.startsWith('/')) back = '/' + back.replace(/^\/+/, '');
+  } catch(_) { back = '/return'; }
+
+  btn.addEventListener('click', function(e){
+    e.preventDefault();
+    try {
+      if (document.referrer && new URL(document.referrer).origin === location.origin) { history.back(); return; }
+    } catch(_) {}
+    location.href = back || '/return';
+  });
+})();
+
+/* Copy token */
+(function(){
+  const btn = document.getElementById('copyBtn');
+  const tokenEl = document.getElementById('ticketToken');
+  if (!btn || !tokenEl) return;
+  btn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(tokenEl.textContent.trim());
+      btn.classList.remove('btn-outline-secondary'); btn.classList.add('btn-success');
+      btn.textContent = 'Đã sao chép';
+      setTimeout(() => { btn.classList.add('btn-outline-secondary'); btn.classList.remove('btn-success'); btn.textContent = 'Sao chép mã vé'; }, 1500);
+    } catch(e) { console.error(e); }
+  });
+})();
+
+/* Auto modal nếu đã CONFIRMED + Poll như borrow */
+(function(){
+  const initial  = document.getElementById('initialStatus')?.value || 'PENDING';
+  const ticketId = document.getElementById('ticketId')?.value;
+  const modal    = new bootstrap.Modal('#returnSuccessModal');
+  const statusBadge = document.getElementById('statusBadge');
+
+  function setStatusUI(state){
+    if (!statusBadge) return;
+    statusBadge.classList.remove('bg-success','bg-warning','bg-secondary','bg-danger','bg-light','text-dark','text-white');
+    switch(state){
+      case 'CONFIRMED': statusBadge.classList.add('bg-success'); break;
+      case 'PENDING':   statusBadge.classList.add('bg-warning','text-dark'); break;
+      case 'CANCELLED': statusBadge.classList.add('bg-secondary'); break;
+      case 'EXPIRED':   statusBadge.classList.add('bg-danger'); break;
+      default:          statusBadge.classList.add('bg-light','text-dark');
+    }
+    statusBadge.textContent = state;
+  }
+
+  if (initial === 'CONFIRMED') {
+    setTimeout(()=>modal.show(), 150);
+  }
+
+  if (ticketId) {
+    let current = initial;
+    const url = `/api/tickets/return/${ticketId}/status`;
+
+    async function tick(){
+      try{
+        const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        const next = data.status;
+        if (next && next !== current) {
+          current = next;
+          setStatusUI(next);
+
+          if (next === 'CONFIRMED') {
+            modal.show();
+            const cancelBtn = document.getElementById('cancelBtn');
+            if (cancelBtn) { cancelBtn.disabled = true; cancelBtn.textContent = 'Đã xác nhận'; }
+            const cancelForm = document.getElementById('cancelForm');
+            if (cancelForm) cancelForm.style.display = 'none';
+          }
+          if (next === 'CANCELLED' || next === 'EXPIRED') {
+            const cancelBtn = document.getElementById('cancelBtn');
+            if (cancelBtn) { cancelBtn.disabled = true; cancelBtn.textContent = (next === 'CANCELLED' ? 'Đã hủy' : 'Đã hết hạn'); }
+            const cancelForm = document.getElementById('cancelForm');
+            if (cancelForm) cancelForm.style.display = 'none';
+          }
+        }
+      } catch(e){ /* ignore transient error */ }
+      finally { setTimeout(tick, 3000); }
+    }
+    if (current !== 'CONFIRMED') tick();
+  }
+
+  // Nút OK trong modal -> về trang trả
+  (function () {
+    const okBtn = document.getElementById('returnOkBtn');
+    if (!okBtn) return;
+    okBtn.addEventListener('click', function () { window.location.assign('/return'); });
+  })();
+})();
+
+/* Countdown + progress giống borrow */
+(function(){
+  const expiresAt = document.getElementById('expiresAtIso')?.value;
+  const requestedAt = document.getElementById('requestedAtIso')?.value;
+  if (!expiresAt) return;
+
+  const end = new Date(expiresAt.replace(' ', 'T'));
+  const start = requestedAt ? new Date(requestedAt.replace(' ', 'T')) : new Date(end.getTime() - 24*3600*1000);
+  const totalMs = Math.max(1, end - start);
+
+  const timeLeftEl = document.getElementById('timeLeft');
+  const bar = document.getElementById('progressBar');
+
+  function pad(n){return n.toString().padStart(2,'0');}
+  function fmt(ms){
+    const h = Math.floor(ms/3600000);
+    const m = Math.floor((ms%3600000)/60000);
+    const s = Math.floor((ms%60000)/1000);
+    return pad(h)+":"+pad(m)+":"+pad(s);
+  }
+
+  const timer = setInterval(()=>{
+    const now = new Date();
+    let remain = end - now;
+    if (remain < 0) remain = 0;
+
+    const elapsed = Math.min(totalMs, now - start);
+    const pct = Math.max(0, Math.min(100, Math.round(100 * elapsed / totalMs)));
+
+    timeLeftEl && (timeLeftEl.textContent = fmt(remain));
+    if (bar) bar.style.width = (100 - pct) + '%';
+
+    if (remain === 0) {
+      bar?.classList.remove('bg-success','bg-warning');
+      bar?.classList.add('bg-danger');
+      const cancelBtn = document.getElementById('cancelBtn');
+      if (cancelBtn) { cancelBtn.disabled = true; cancelBtn.textContent = 'Đã hết hạn'; }
+      const cancelForm = document.getElementById('cancelForm');
+      if (cancelForm) cancelForm.style.display = 'none';
+      const badge = document.getElementById('statusBadge');
+      if (badge) { badge.textContent = 'EXPIRED'; badge.classList.remove('bg-success','bg-warning','text-dark','bg-secondary'); badge.classList.add('bg-danger'); }
+      clearInterval(timer);
+    } else if (remain < 2*60*60*1000) {
+      bar?.classList.remove('bg-success'); bar?.classList.add('bg-warning');
+    } else {
+      bar?.classList.remove('bg-warning'); bar?.classList.add('bg-success');
+    }
+  }, 1000);
+})();
+</script>
+</body>
+</html>

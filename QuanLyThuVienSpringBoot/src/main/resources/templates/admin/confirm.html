@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Xác nhận mượn/trả (Admin)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+  <link rel="stylesheet" th:href="@{/css/header_ad.css}">
+  <link rel="stylesheet" th:href="@{/css/footer.css}">
+  <link rel="stylesheet" th:href="@{/css/confirm.css}">
+</head>
+<body class="d-flex flex-column min-vh-100">
+  <!-- Navbar -->
+  <div th:replace="fragments/header_ad :: adminHeader"></div>
+
+  <main class="flex-grow-1 admin-confirm">
+    <div class="container py-4">
+      <h3 class="mb-3">Xác nhận mượn / trả (Admin)</h3>
+
+      <!-- ====== FLASH MESSAGES ====== -->
+      <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+      <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+      <!-- Trường hợp redirect kèm query string ?error=... / ?message=... -->
+      <div th:if="${param.error}" class="alert alert-danger" th:text="${param.error}"></div>
+      <div th:if="${param.message}" class="alert alert-success" th:text="${param.message}"></div>
+
+      <div class="row g-4">
+        <!-- Cột trái: Quét QR -->
+        <div class="col-12 col-lg-6">
+          <div class="card h-100">
+            <div class="card-header">Quét mã QR</div>
+            <div class="card-body">
+              <div class="scan-box">
+                <div id="qr-reader"></div>
+              </div>
+              <p class="text-muted mt-3 mb-0">
+                Khi quét được mã, hệ thống sẽ tự điền vào ô “Mã vé / mã mượn” bên phải.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cột phải: Nhập tay / xác nhận -->
+        <div class="col-12 col-lg-6">
+          <div class="card h-100">
+            <div class="card-header">Nhập tay / Xác nhận hành động</div>
+            <div class="card-body">
+              <form class="mb-3" method="post" th:action="@{/admin/confirm/lend}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="mb-3">
+                  <label class="form-label">Mã vé / mã mượn</label>
+                  <input id="code-input" name="code" class="form-control" placeholder="VD: abc123..." required>
+                </div>
+                <button class="btn btn-primary w-100">Xác nhận CHO MƯỢN</button>
+              </form>
+
+              <form method="post" th:action="@{/admin/confirm/return}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="mb-3">
+                  <label class="form-label">Mã vé / mã trả</label>
+                  <input id="code-input-return" name="code" class="form-control" placeholder="VD: xyz789..." required>
+                </div>
+                <button class="btn btn-success w-100">Xác nhận NHẬN LẠI SÁCH</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div> <!-- /row -->
+    </div>
+  </main>
+
+  <div th:replace="fragments/footer :: siteFooter"></div>
+
+  <!-- QR Scanner -->
+  <script src="https://unpkg.com/html5-qrcode" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script th:src="@{/js/footer.js}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.Html5QrcodeScanner) {
+        const onScanSuccess = (decodedText) => {
+          const s = (decodedText || '').trim();
+          const code1 = document.getElementById('code-input');
+          const code2 = document.getElementById('code-input-return');
+          if (code1) code1.value = s;
+          if (code2) code2.value = s;
+        };
+        const scanner = new Html5QrcodeScanner(
+          "qr-reader",
+          { fps: 10, qrbox: 250, rememberLastUsedCamera: true },
+          false
+        );
+        scanner.render(onScanSuccess, () => {});
+      }
+    });
+  </script>
+</body>
+</html>

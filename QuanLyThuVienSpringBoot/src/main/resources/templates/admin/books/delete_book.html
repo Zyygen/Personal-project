@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <title>Xóa sách</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/css/header_ad.css}">
+  <link rel="stylesheet" th:href="@{/css/admin-books.css?v=1}">
+  <link rel="stylesheet" th:href="@{/css/footer.css}">
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+  <!-- Navbar -->
+  <div th:replace="fragments/header_ad :: adminHeader"></div>
+
+  <!-- THÂN TRANG -->
+  <main class="flex-grow-1 admin-books">
+    <div class="container mt-4">
+
+      <!-- FLASH -->
+      <div id="flash" class="mb-3">
+        <div th:if="${message != null or param.message != null}" class="alert alert-success alert-dismissible fade show" role="alert">
+          <i class="bi bi-check-circle me-2"></i>
+          <span th:text="${message != null ? message : (param.message != null ? param.message[0] : '')}">Đã xoá thành công.</span>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error != null or param.error != null}" class="alert alert-danger alert-dismissible fade show" role="alert">
+          <i class="bi bi-x-circle me-2"></i>
+          <span th:text="${error != null ? error : (param.error != null ? param.error[0] : '')}">Xoá thất bại.</span>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${errorCode == 'cannotDeleteHasBorrow' or (param.errorCode != null and param.errorCode[0] == 'cannotDeleteHasBorrow')}"
+             class="alert alert-warning alert-dismissible fade show text-center" role="alert">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          Không thể xóa sách vì sách đang được mượn hoặc đã nằm trong lịch sử mượn.
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      </div>
+
+      <!-- CARD: BỘ LỌC/TÌM KIẾM -->
+      <div class="card mb-4">
+        <div class="card-header">Bộ lọc / Tìm kiếm</div>
+        <div class="card-body">
+          <form method="get" th:action="@{/admin/books/delete}" class="row g-3 align-items-end">
+            <div class="col-md-4">
+              <label for="keyword" class="form-label">🔍 Tên sách</label>
+              <input type="text" id="keyword" name="keyword" class="form-control"
+                     placeholder="VD: Lập trình Java" th:value="${param.keyword}">
+            </div>
+            <div class="col-md-4">
+              <label for="author" class="form-label">✍️ Tác giả</label>
+              <input type="text" id="author" name="author" class="form-control"
+                     placeholder="VD: Nguyễn Văn A" th:value="${param.author}">
+            </div>
+            <div class="col-md-4">
+              <label for="categoryId" class="form-label">📚 Danh mục</label>
+              <select id="categoryId" name="categoryId" class="form-select">
+                <option value="">-- Tất cả danh mục --</option>
+                <option th:each="cat : ${categories}" th:value="${cat.id}"
+                        th:text="${cat.name}" th:selected="${param.categoryId} == ${cat.id}"></option>
+              </select>
+            </div>
+            <div class="col-12 text-end">
+              <button type="submit" class="btn btn-primary me-2">
+                <i class="bi bi-search"></i> Tìm kiếm
+              </button>
+              <a th:href="@{/admin/books/delete}" class="btn btn-outline-primary">
+                <i class="bi bi-x-circle"></i> Đặt lại
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- DANH SÁCH -->
+      <div class="card">
+        <div class="card-header">🗑️ Danh sách sách để xóa</div>
+        <div class="card-body">
+          <div th:if="${errorCode == 'cannotDeleteHasBorrow' or param.errorCode == 'cannotDeleteHasBorrow'}"
+               class="alert alert-danger text-center mb-3">
+            Không thể xóa sách vì sách đang được mượn hoặc đã được lưu vào lịch sử mượn.
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle text-center">
+              <thead class="table-dark">
+                <tr>
+                  <th>Tên sách</th>
+                  <th>Danh mục</th>
+                  <th>Tác giả</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="book : ${books.content}">
+                  <td><span class="fw-semibold" th:text="${book.title}"></span></td>
+                  <td>
+                    <span class="badge bg-light text-dark"
+                          th:text="${book.category != null ? book.category.name : 'Không có'}">—</span>
+                  </td>
+                  <td th:text="${book.author}">—</td>
+                  <td>
+                    <form th:action="@{|/admin/books/delete/${book.id}|}" method="post"
+                          class="d-inline"
+                          onsubmit="return confirm('Bạn có chắc chắn muốn xóa sách này?');">
+                      <input type="hidden" name="page" th:value="${books.number}">
+                      <input type="hidden" name="keyword" th:value="${param.keyword}">
+                      <input type="hidden" name="author" th:value="${param.author}">
+                      <input type="hidden" name="categoryId" th:value="${param.categoryId}">
+                      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                      <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash3-fill"></i> Xóa
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+                <tr th:if="${books.totalElements == 0}">
+                  <td colspan="4" class="text-center text-muted">Không có sách nào.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Phân trang (đÃ SỬA prev/next) -->
+          <nav th:if="${books.totalPages > 1}" class="mt-3">
+            <ul class="pagination justify-content-center">
+              <!-- Prev -->
+              <li class="page-item" th:classappend="${books.first} ? ' disabled'">
+                <a class="page-link"
+                   th:href="@{|/admin/books/delete?page=${books.number - 1}&keyword=${param.keyword}&author=${param.author}&categoryId=${param.categoryId}|}"
+                   aria-label="Previous">&laquo;</a>
+              </li>
+
+              <!-- Pages -->
+              <li class="page-item" th:each="i : ${#numbers.sequence(0, books.totalPages - 1)}"
+                  th:classappend="${i == books.number} ? ' active'">
+                <a class="page-link"
+                   th:href="@{|/admin/books/delete?page=${i}&keyword=${param.keyword}&author=${param.author}&categoryId=${param.categoryId}|}"
+                   th:text="${i + 1}">1</a>
+              </li>
+
+              <!-- Next -->
+              <li class="page-item" th:classappend="${books.last} ? ' disabled'">
+                <a class="page-link"
+                   th:href="@{|/admin/books/delete?page=${books.number + 1}&keyword=${param.keyword}&author=${param.author}&categoryId=${param.categoryId}|}"
+                   aria-label="Next">&raquo;</a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <div th:replace="fragments/footer :: siteFooter"></div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script th:src="@{/js/footer.js}"></script>
+</body>
+</html>

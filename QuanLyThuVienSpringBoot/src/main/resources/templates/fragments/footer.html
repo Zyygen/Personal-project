@@ -1,0 +1,36 @@
+<div th:fragment="siteFooter">
+  <footer class="site-footer mt-5">
+  <div class="container py-3">
+    <div class="row g-3 align-items-start">
+      <!-- Trái: thông tin liên hệ -->
+      <div class="col-12 col-lg">
+        <div class="fw-bold">Thư Viện Đại Học Công Nghệ Đông Á</div>
+        <div class="small">Địa chỉ: Tòa Nhà Polyco, Trịnh Văn Bô, Nam Từ Liêm, Hà Nội</div>
+        <div class="small">Email:
+          <a href="mailto:tuyensinh@eaut.edu.vn">tuyensinh@eaut.edu.vn</a>
+        </div>
+        <div class="small">Điện thoại:
+          <a href="tel:02462627797">0246262xxxx</a>
+        </div>
+      </div>
+
+      <!-- Phải: thống kê (có thể truyền biến Thymeleaf nếu có) -->
+      <div class="col-12 col-lg-auto">
+        <div class="d-flex flex-column gap-1 small">
+          <div><i class="bi bi-calendar2-week me-2"></i>Hôm nay: <span id="todayVi">—</span></div>
+          <div><i class="bi bi-envelope-open me-2"></i>Hỗ trợ:
+            <a href="mailto:tuyensinh@eaut.edu.vn">support@eaut.edu.vn</a>
+          </div>
+          <div><i class="bi bi-bar-chart-line me-2"></i>Developer:
+            <span>ZyyGen</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+  <!-- Nút Back to Top theo đúng markup bạn yêu cầu -->
+  <button onclick="topFunction()" id="btnBackToTop" title="Go to top"
+          class="btn-scroll-top" style="display: none;"></button>
+</div>

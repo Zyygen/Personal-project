@@ -1,0 +1,57 @@
+<!-- fragments/header.html -->
+<div th:fragment="siteHeader"
+     xmlns:th="http://www.thymeleaf.org"
+     xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+  <!-- Banner -->
+  <div class="top-banner">
+    <img src="https://thuvieneaut.edu.vn/App_themes/eaut/images/bannerEaut.png" alt="Banner Thư viện EAUT">
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg eaut-navbar">
+    <div class="container-fluid">
+      <a class="navbar-brand d-flex align-items-center" th:href="@{/home}">
+        <i class="bi bi-house-door-fill me-2"></i> Trang chủ
+      </a>
+
+      <button class="navbar-toggler text-white" type="button"
+              data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div id="mainNav" class="collapse navbar-collapse">
+        <ul class="navbar-nav middle flex-lg-row">
+          <li class="nav-item"><a class="nav-link" th:href="@{/borrow}">Mượn sách</a></li>
+          <li class="nav-item d-none d-lg-flex align-items-center"><span class="menu-sep"></span></li>
+          <li class="nav-item"><a class="nav-link" th:href="@{/return}">Trả sách</a></li>
+          <li class="nav-item d-none d-lg-flex align-items-center"><span class="menu-sep"></span></li>
+          <li class="nav-item"><a class="nav-link" th:href="@{/user/qr_history}">Lịch sử mượn trả</a></li>
+          <li class="nav-item d-none d-lg-flex align-items-center"><span class="menu-sep"></span></li>
+          <li class="nav-item"><a class="nav-link" th:href="@{/user/member}">Thành viên</a></li>
+          <li class="nav-item d-none d-lg-flex align-items-center"><span class="menu-sep"></span></li>
+          <li class="nav-item"><a class="nav-link" th:href="@{/user/contact}">Liên hệ</a></li>
+        </ul>
+
+        <ul class="navbar-nav ms-auto align-items-lg-center">
+          <li class="nav-item" sec:authorize="isAnonymous()">
+            <a class="nav-link d-flex align-items-center" th:href="@{/login}">
+              <i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập
+            </a>
+          </li>
+          <li class="nav-item" sec:authorize="isAuthenticated()">
+            <a class="nav-link d-flex align-items-center" th:href="@{/user/profile}">
+              <i class="bi bi-person-circle me-1"></i> Hồ sơ
+            </a>
+          </li>
+          <li class="nav-item" sec:authorize="isAuthenticated()">
+            <a class="nav-link text-warning" th:href="@{/logout}">
+              <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
+            </a>
+          </li>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+</div>

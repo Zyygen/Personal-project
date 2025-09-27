@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Thêm Danh mục Sách</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+  <link rel="stylesheet" th:href="@{/css/header_ad.css}">
+  <link rel="stylesheet" th:href="@{/css/footer.css}">
+  <link rel="stylesheet" th:href="@{/css/category.css}">
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+  <!-- Navbar -->
+  <div th:replace="fragments/header_ad :: adminHeader"></div>
+
+<main class="flex-grow-1 admin-categories">
+  <div class="container my-4">
+
+    <div class="card">
+      <div class="card-header">➕ Thêm Danh mục</div>
+      <div class="card-body">
+        <form th:action="@{/admin/categories/add}" method="post" th:object="${category}">
+          <div class="mb-3">
+            <label for="name" class="form-label">Tên danh mục</label>
+            <input id="name" type="text" th:field="*{name}" class="form-control" placeholder="Nhập tên danh mục" required>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success">💾 Lưu</button>
+            <a th:href="@{/admin/categories}" class="btn btn-outline-secondary">⬅ Quay lại</a>
+          </div>
+
+          <div th:if="${error}" class="alert alert-danger mt-3" th:text="${error}"></div>
+          <div th:if="${message}" class="alert alert-success mt-3" th:text="${message}"></div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+  <div th:replace="fragments/footer :: siteFooter"></div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script th:src="@{/js/footer.js}"></script>
+</body>
+</html>

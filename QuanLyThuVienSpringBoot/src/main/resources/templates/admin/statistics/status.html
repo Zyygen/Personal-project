@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Tình trạng sách</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+    <link rel="stylesheet" th:href="@{/css/header_ad.css}">
+    <link rel="stylesheet" th:href="@{/css/footer.css}">
+    <link rel="stylesheet" th:href="@{/css/statistics.css}">
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+  <!-- Navbar -->
+  <div th:replace="fragments/header_ad :: adminHeader"></div>
+
+<main class="flex-grow-1 admin-stats">
+<div class="container">
+
+    <!-- ===== Sách còn lại trong thư viện ===== -->
+    <div class="card mb-5">
+        <div class="card-header bg-info text-white">
+            📚 Sách còn lại trong thư viện
+        </div>
+        <div class="card-body">
+
+            <!-- Tổng quan -->
+            <p class="mb-3">
+                Tổng số sách có thể cho mượn:
+                <strong th:text="${totalAvailableQuantity}">0</strong>
+            </p>
+
+            <!-- Bộ lọc & tìm kiếm -->
+            <form class="row g-2 align-items-end mb-3" method="get" th:action="@{/admin/statistics/status}">
+                <div class="col-12 col-md-4">
+                    <label class="form-label fw-semibold">Danh mục</label>
+                    <select name="categoryId" class="form-select">
+                        <option value="" th:selected="${categoryId == null or categoryId == 0}">Tất cả</option>
+                        <option th:each="c : ${categories}"
+                                th:value="${c.id}"
+                                th:text="${c.name}"
+                                th:selected="${categoryId != null and categoryId == c.id}">Danh mục</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-5">
+                    <label class="form-label fw-semibold">Tìm kiếm</label>
+                    <input class="form-control" type="text" name="q"
+                           placeholder="Nhập tên sách hoặc tác giả"
+                           th:value="${q}">
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label d-none d-md-block">&nbsp;</label>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary w-100">
+                            <i class="bi bi-search me-1"></i> Lọc
+                        </button>
+                        <a class="btn btn-outline-secondary w-100" th:href="@{/admin/statistics/status}">
+                            Xóa
+                        </a>
+                    </div>
+                    <!-- giữ kích thước trang (mặc định 10; bạn có thể set 6 nếu muốn) -->
+                    <input type="hidden" name="size" th:value="${bookPage != null ? bookPage.size : 10}">
+                </div>
+            </form>
+
+            <!-- Thông báo không tìm thấy -->
+            <div class="alert alert-danger text-center"
+                 th:if="${bookPage != null and bookPage.totalElements == 0 and q != null and !#strings.isEmpty(q)}">
+                Không tìm thấy sách với ký tự "<span class="fw-semibold" th:text="${q}">…</span>".
+            </div>
+            <!-- Thông báo danh mục rỗng (khi không tìm theo q) -->
+            <div class="alert alert-warning text-center"
+                 th:if="${bookPage != null and bookPage.totalElements == 0 and (q == null or #strings.isEmpty(q))}">
+                Danh mục này hiện chưa có sách.
+            </div>
+
+            <!-- Bảng kết quả -->
+            <div class="table-responsive" th:if="${bookPage != null and bookPage.totalElements > 0}">
+              <table class="table table-bordered mb-0">
+                  <thead>
+                      <tr>
+                          <th>Tiêu đề</th>
+                          <th>Tác giả</th>
+                          <th>Danh mục</th> <!-- NEW -->
+                          <th class="text-end">Số lượng còn lại</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      <tr th:each="b : ${bookPage.content}">
+                          <td th:text="${b.title}">Tiêu đề</td>
+                          <td th:text="${b.author}">Tác giả</td>
+                          <td th:text="${b.category != null ? b.category.name : '-'}">Danh mục</td>
+                          <td class="text-end" th:text="${b.quantity}">0</td>
+                      </tr>
+                  </tbody>
+              </table>
+            </div>
+
+            <!-- Phân trang (giữ q & categoryId & size) -->
+            <nav class="mt-3" aria-label="Page navigation" th:if="${bookPage != null and bookPage.totalPages > 1}">
+              <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${bookPage.first} ? 'disabled'">
+                  <a class="page-link"
+                     th:href="@{|/admin/statistics/status?page=${bookPage.number - 1}&size=${bookPage.size}${q != null and !#strings.isEmpty(q) ? '&q=' + q : ''}${(categoryId != null and categoryId != 0) ? '&categoryId=' + categoryId : ''}|}"
+                     aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                  </a>
+                </li>
+
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, bookPage.totalPages - 1)}"
+                    th:classappend="${bookPage.number == i} ? 'active'">
+                  <a class="page-link"
+                     th:text="${i + 1}"
+                     th:href="@{|/admin/statistics/status?page=${i}&size=${bookPage.size}${q != null and !#strings.isEmpty(q) ? '&q=' + q : ''}${(categoryId != null and categoryId != 0) ? '&categoryId=' + categoryId : ''}|}">
+                    1
+                  </a>
+                </li>
+
+                <li class="page-item" th:classappend="${bookPage.last} ? 'disabled'">
+                  <a class="page-link"
+                     th:href="@{|/admin/statistics/status?page=${bookPage.number + 1}&size=${bookPage.size}${q != null and !#strings.isEmpty(q) ? '&q=' + q : ''}${(categoryId != null and categoryId != 0) ? '&categoryId=' + categoryId : ''}|}"
+                     aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+        </div>
+    </div>
+
+    <!-- ===== Sách đang được mượn ===== -->
+    <div class="card">
+        <div class="card-header bg-warning text-dark">
+            📖 Sách đang được mượn
+        </div>
+        <div class="card-body">
+            <p>Tổng số sách đang được mượn:<strong th:text="${totalBorrowedBooks}">0</strong></p>
+            <div class="table-responsive">
+              <table class="table table-striped mb-0">
+                  <thead>
+                      <tr>
+                          <th>Tiêu đề</th>
+                          <th>Tác giả</th>
+                          <th>Người mượn</th>
+                          <th>Ngày mượn</th>
+                          <th class="text-end">Số lượng</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      <tr th:each="b : ${borrowedBooks}">
+                          <td th:text="${b.book.title}">—</td>
+                          <td th:text="${b.book.author}">—</td>
+                          <td th:text="${b.user.username}">—</td>
+                          <td th:text="${#temporals.format(b.borrowDate, 'dd/MM/yyyy HH:mm')}">—</td>
+                          <td class="text-end" th:text="${b.amount}">1</td>
+                      </tr>
+                  </tbody>
+              </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+</main>
+
+  <div th:replace="fragments/footer :: siteFooter"></div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script th:src="@{/js/footer.js}"></script>
+</body>
+</html>

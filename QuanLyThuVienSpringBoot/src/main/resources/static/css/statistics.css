@@ -1,0 +1,114 @@
+.admin-stats{
+  /* Màu thương hiệu = màu navbar */
+  --brand:             #0b3761; /* navy */
+  --brand-700:         #0a2f52;
+  --brand-800:         #06233d;
+
+  /* Tông nhạt cho nền bảng */
+  --brand-soft:        #eaf2fb;
+  --brand-soft-border: #d4e4f7;
+
+  /* đồng bộ Bootstrap primary trong phạm vi */
+  --bs-primary: var(--brand);
+}
+
+/* ---- Card & layout ---- */
+.admin-stats .card{
+  border-radius:16px;
+  box-shadow:0 6px 16px rgba(0,0,0,.08);
+  overflow:hidden;
+  border:1px solid var(--brand-soft-border);
+}
+.admin-stats .card + .card{ margin-top:1.25rem; }
+
+/* ✅ Đồng bộ TẤT CẢ header card về cùng màu navbar */
+.admin-stats .card-header{
+  font-weight:700;
+  letter-spacing:.02em;
+  border-bottom:0;
+  background: var(--brand) !important;
+  color:#fff !important;
+}
+
+/* Nếu HTML cũ có dùng bg-info/bg-success/bg-danger/bg-warning… 
+   cũng sẽ bị override về --brand nhờ rule trên, 
+   KHÔNG cần đổi template. */
+
+/* ---- Bảng dữ liệu ---- */
+.admin-stats .table{ margin-bottom:0; }
+.admin-stats .table thead th{
+  background: var(--brand-soft);
+  border-bottom:1px solid var(--brand-soft-border) !important;
+  position: sticky; top: 0; z-index: 1;
+}
+.admin-stats .table tbody tr:hover{ background:#f6f9ff; }
+.admin-stats .table-bordered > :not(caption) > *{ border-color: var(--brand-soft-border); }
+
+/* vùng cuộn (bọc table bằng .table-wrap nếu cần) */
+.admin-stats .table-wrap{
+  max-height: 520px;
+  overflow:auto;
+  border:1px solid var(--brand-soft-border);
+  border-radius:12px;
+}
+
+/* ---- Badge trạng thái & con số ---- */
+.admin-stats .badge-ok{
+  background:#eaf7ef; color:#198754; border:1px solid #cfe9d9;
+}
+.admin-stats .badge-warn{
+  background:#fff4e5; color:#b26a00; border:1px solid #ffe4bf;
+}
+.admin-stats .badge-no{
+  background:#fde8e7; color:#d63341; border:1px solid #f6c8c6;
+}
+
+/* ---- Nút & input đồng bộ bo góc + màu ---- */
+.admin-stats .form-control,
+.admin-stats .form-select,
+.admin-stats .btn{ border-radius:12px; }
+
+.admin-stats .form-control:focus,
+.admin-stats .form-select:focus{
+  border-color: var(--brand);
+  box-shadow: 0 0 0 .25rem rgb(11 55 97 / 15%);
+}
+
+.admin-stats .btn-primary{
+  --bs-btn-bg:                 var(--brand);
+  --bs-btn-border-color:       var(--brand);
+  --bs-btn-hover-bg:           var(--brand-700);
+  --bs-btn-hover-border-color: var(--brand-700);
+  --bs-btn-active-bg:          var(--brand-800);
+  --bs-btn-active-border-color:var(--brand-800);
+  color:#fff;
+}
+
+/* ---- Pagination đồng bộ màu ---- */
+.admin-stats .pagination .page-link{
+  color: var(--brand);
+  border-radius: 50%;
+  width: 40px; height: 40px;
+  display:flex; align-items:center; justify-content:center; font-weight:600;
+}
+.admin-stats .pagination .page-item.active .page-link{
+  background: var(--brand);
+  border-color: var(--brand);
+  color:#fff;
+}
+
+/* ---- Khoảng cách chung container ---- */
+.admin-stats .container{
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* Mobile */
+@media (max-width: 991.98px){
+  .admin-stats .table-wrap{ max-height: unset; }
+}
+
+.admin-stats .card.card--info   { border-left:6px solid #1e90ff; }
+.admin-stats .card.card--success{ border-left:6px solid #198754; }
+.admin-stats .card.card--danger { border-left:6px solid #dc3545; }
+.admin-stats .card.card--warn   { border-left:6px solid #ffc107; }

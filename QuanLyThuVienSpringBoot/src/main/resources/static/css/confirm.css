@@ -1,0 +1,73 @@
+/* ====== CHỈ ÁP DỤNG TRONG PHẠM VI .admin-confirm ====== */
+.admin-confirm{
+  /* Màu thương hiệu (giống menu) */
+  --brand:     #0b3761;
+  --brand-700: #0a2f52;
+  --brand-800: #06233d;
+
+  /* Đồng bộ bootstrap primary trong phạm vi */
+  --bs-primary: var(--brand);
+}
+
+/* Card & layout */
+.admin-confirm .card{
+  border-radius:16px;
+  box-shadow:0 6px 16px rgba(0,0,0,.08);
+}
+.admin-confirm .card.h-100{
+  display:flex; flex-direction:column;
+}
+.admin-confirm .card-header{
+  background:var(--brand);
+  color:#fff;
+  font-weight:700;
+  letter-spacing:.02em;
+}
+
+/* Inputs + buttons bo góc, màu tập trung */
+.admin-confirm .form-control,
+.admin-confirm .form-select,
+.admin-confirm .btn{
+  border-radius:12px;
+}
+.admin-confirm .form-control:focus,
+.admin-confirm .form-select:focus{
+  border-color: var(--brand);
+  box-shadow: 0 0 0 .25rem rgb(11 55 97 / 15%);
+}
+
+/* Nút primary theo brand; success giữ nguyên để phân biệt hành động */
+.admin-confirm .btn-primary{
+  --bs-btn-bg: var(--brand);
+  --bs-btn-border-color: var(--brand);
+  --bs-btn-hover-bg: var(--brand-700);
+  --bs-btn-hover-border-color: var(--brand-700);
+  --bs-btn-active-bg: var(--brand-800);
+  --bs-btn-active-border-color: var(--brand-800);
+  color:#fff;
+}
+.admin-confirm .btn-success{
+  --bs-btn-bg: var(--brand);
+  --bs-btn-border-color: var(--brand);
+  --bs-btn-hover-bg: var(--brand-700);
+  --bs-btn-hover-border-color: var(--brand-700);
+  --bs-btn-active-bg: var(--brand-800);
+  --bs-btn-active-border-color: var(--brand-800);
+  color:#fff;
+}
+
+/* Khung máy quét QR */
+.admin-confirm .scan-box{ max-width:520px; margin:auto; }
+.admin-confirm #qr-reader{
+  width:100%;
+  min-height:280px;
+  border-radius:12px;
+  overflow:hidden;
+  background:#f8fbff;
+  border:1px solid #e6eef7;
+}
+
+/* Responsive tinh chỉnh nhẹ */
+@media (max-width: 991.98px){
+  .admin-confirm .scan-box{ max-width:100%; }
+}
